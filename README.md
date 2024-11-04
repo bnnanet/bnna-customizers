@@ -16,6 +16,30 @@ Custom Alpine and Ubuntu container filesystems and images
     The versioned URL is stored in `/usr/share/perl5/PVE/APLInfo.pm`, and
     can be manually updated to get the latest images on an older system (caveats may apply).
 
+    <details><summary>Sample Output</summary>
+    <pre><code>
+    update successful
+    system          almalinux-9-default_20240911_amd64.tar.xz
+    system          alpine-3.18-default_20230607_amd64.tar.xz
+    system          alpine-3.19-default_20240207_amd64.tar.xz
+    system          alpine-3.20-default_20240908_amd64.tar.xz
+    system          archlinux-base_20240911-1_amd64.tar.zst
+    system          centos-9-stream-default_20240828_amd64.tar.xz
+    system          debian-11-standard_11.7-1_amd64.tar.zst
+    system          debian-12-standard_12.7-1_amd64.tar.zst
+    system          devuan-5.0-standard_5.0_amd64.tar.gz
+    system          fedora-39-default_20231118_amd64.tar.xz
+    system          fedora-40-default_20240909_amd64.tar.xz
+    system          gentoo-current-openrc_20231009_amd64.tar.xz
+    system          opensuse-15.5-default_20231118_amd64.tar.xz
+    system          opensuse-15.6-default_20240910_amd64.tar.xz
+    system          rockylinux-9-default_20240912_amd64.tar.xz
+    system          ubuntu-20.04-standard_20.04-1_amd64.tar.gz
+    system          ubuntu-22.04-standard_22.04-1_amd64.tar.zst
+    system          ubuntu-24.04-standard_24.04-2_amd64.tar.zst
+    </code></pre>
+    </details>
+
 2. Download the desired images
 
     ```sh
