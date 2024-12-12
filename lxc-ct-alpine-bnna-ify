@@ -1,0 +1,98 @@
+#!/bin/sh
+set -e
+set -u
+
+g_thisdir="$(dirname "${0}")"
+g_rootdir_default="/mnt/pve/cephfs0/template/cache.tmp"
+g_tarball="${1:-}"
+g_rootdir="${2:-}"
+
+fn_help() { (
+    echo ""
+    echo "USAGE"
+    echo "  ${0} <alpine-tarball> [unpack dir]"
+    echo ""
+    echo "EXAMPLES"
+    echo "  ${0} ./template/cache/alpine-3.20-default_20240908_amd64.tar.xz"
+    echo "  ${0} ./template/cache/alpine-3.20-default_20240908_amd64.tar.xz ./alpine-3.20-bnna/"
+    echo ""
+); }
+
+main() { (
+    if test -z "${g_tarball}"; then
+        fn_help >&2
+        return 1
+    fi
+
+    b_basename="$(basename "${g_tarball}" | rev | cut -d. -f3- | rev)"
+    if test -z "${g_rootdir}"; then
+        mkdir -p "${g_rootdir_default}"
+        g_rootdir="${g_rootdir_default}/${b_basename}"
+    fi
+
+    if ! test -e "${g_rootdir}"; then
+        mkdir -p "${g_rootdir}"
+
+        printf '%s' "Unpacking ${g_tarball}... "
+        tar xf "${g_tarball}" -C "${g_rootdir}"
+    fi
+    echo "${g_rootdir}"
+
+    chmod a+x "${g_thisdir}"/*
+    chmod a-x "${g_thisdir}"/_* "${g_thisdir}"/*.md "${g_thisdir}"/LICENSE
+    cp -RPp "${g_thisdir}"/chroot-alpine-customize.sh "${g_rootdir}"/tmp/customize
+    cp -RPp "${g_thisdir}"/chroot-alpine-customize-user.sh "${g_rootdir}"/tmp/customize-user
+    cp -RPp "${g_thisdir}"/_chroot-user-ssh-config "${g_rootdir}"/tmp/app.sshconfig
+    cp -RPp "${g_thisdir}"/_chroot-user-alias-env "${g_rootdir}"/tmp/app.alias.env
+    cp -RPp "${g_thisdir}"/_chroot-alpine-readme "${g_rootdir}"/tmp/app.README.md
+    cp -RPp "${g_thisdir}"/_chroot-example-sshconfig "${g_rootdir}"/tmp/app.example.sshconfig
+    # temporary
+    cat /etc/resolv.conf > "${g_rootdir}"/etc/resolv.conf
+
+    echo "[BNNA-ify] chroot: mount '${g_rootdir}'"
+    "${g_thisdir}"/lxc-ct-chroot-mount.sh "${g_rootdir}"
+    echo "[BNNA-ify] chroot: customize (root)"
+    chroot "${g_rootdir}" /tmp/customize
+    echo "[BNNA-ify] chroot: customize (user 'app')"
+    chroot "${g_rootdir}" sudo -H -u app /tmp/customize-user
+    echo "[BNNA-ify] chroot: unmount"
+    "${g_thisdir}"/lxc-ct-chroot-unmount.sh "${g_rootdir}"
+
+    echo "[BNNA-ify] firstboot: add ending"
+    cat "${g_thisdir}"/_chroot-firstboot >> "${g_rootdir}"/etc/init.d/firstboot
+    vim "${g_rootdir}"/etc/init.d/firstboot
+    sed -i 's/root:[^:]\+/root:*/' "${g_rootdir}"/etc/shadow
+
+    sed -i 's/#\?PermitRootLogin no/PermitRootLogin prohibit-password # bnna explicit/' "${g_rootdir}"/etc/ssh/sshd_config
+    sed -i 's/#\?PasswordAuthentication .*/PasswordAuthentication no # bnna disabled/' "${g_rootdir}"/etc/ssh/sshd_config
+    sed -i 's/#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no # bnna disabled/' "${g_rootdir}"/etc/ssh/sshd_config
+    sed -i 's/#\?AllowTcpForwarding .*/AllowTcpForwarding yes # bnna re-enabled/' "${g_rootdir}"/etc/ssh/sshd_config
+    sed -i 's/#\?GatewayPorts .*/GatewayPorts yes # bnna re-enabled/' "${g_rootdir}"/etc/ssh/sshd_config
+
+    rm -rf \
+        "${g_rootdir}"/home/app/Downloads/ \
+        "${g_rootdir}"/home/app/.ash_history \
+        "${g_rootdir}"/root/Downloads/ \
+        "${g_rootdir}"/root/.bashrc \
+        "${g_rootdir}"/root/.ash_history
+    rm -f "${g_rootdir}"/etc/group- \
+        "${g_rootdir}"/etc/passwd- \
+        "${g_rootdir}"/etc/shadow- \
+        "${g_rootdir}"/dev/null
+    rm -rf "${g_rootdir}"/tmp/*
+
+    printf '' > "${g_rootdir}"/etc/resolv.conf
+
+    b_bnnaname="$(echo "${b_basename}" | sed 's/default/bnna/')"
+    echo "Archiving /mnt/pve/cephfs0/template/cache/${b_bnnaname}.tar ..."
+    tar cf /mnt/pve/cephfs0/template/cache/"${b_bnnaname}.tar" -C "${g_rootdir}" .
+    echo "Compressing /mnt/pve/cephfs0/template/cache/${b_bnnaname}.tar.zst"
+    zstd /mnt/pve/cephfs0/template/cache/"${b_bnnaname}.tar" \
+        -o /mnt/pve/cephfs0/template/cache/"${b_bnnaname}.tar.zst"
+    rm /mnt/pve/cephfs0/template/cache/"${b_bnnaname}.tar"
+
+    echo "not deleted: ${g_rootdir}"
+    echo "done: /mnt/pve/cephfs0/template/cache/${b_bnnaname}.tar.zst"
+); }
+
+main

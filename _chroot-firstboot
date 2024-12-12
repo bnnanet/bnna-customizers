@@ -1,0 +1,17 @@
+	# custom: bnna
+	einfo "Generating app user keys"
+	if ! test -f /home/app/.ssh/id_ed25519; then
+		sudo -H -u app ssh-keygen -t ed25519 -f /home/app/.ssh/id_ed25519 -q -N ''
+	fi
+	if ! test -f /home/app/.ssh/id_ecdsa; then
+		sudo -H -u app ssh-keygen -b 256 -t ecdsa -f /home/app/.ssh/id_ecdsa -q -N ''
+	fi
+
+	# custom: bnna
+	einfo "Updating package cache"
+	apk update --no-cache
+
+	# custom: bnna
+	cat /root/.ssh/authorized_keys >> /home/app/.ssh/authorized_keys
+	checkpath -fm 0600 /home/app/.ssh/authorized_keys
+	chown -R app:app /home/app/.ssh

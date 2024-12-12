@@ -1,0 +1,15 @@
+http://sso-demo.paperos.net:3080 {
+        log {
+                output stdout
+                format json
+        }
+
+        header {
+                Link "<https://sso.paperos.com{http.request.orig_uri}>; rel=\"canonical\""
+                X-Robots-Tag noindex
+        }
+
+        encode gzip zstd
+        root * /home/app/srv/sso-demo.paperos.net/
+        file_server
+}

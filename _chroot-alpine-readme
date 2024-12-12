@@ -1,0 +1,194 @@
+# Welcome to Alpine, BNNA Edition
+
+BNNA's Alpine is slightly different from the stock filesystem.
+
+We've tried to strike a good balance between the minimalism of Alpine,
+a few utilities to help you get started here, and an easy way to downsize.
+
+## Table of Contents
+
+- Default Shell
+- Developer Utilities
+- Installed Packages
+- SSH Config
+- Uinstall it all
+
+## Default Shell
+
+`screen` and `fish` are set in `~/.profile`.
+
+- `screen` is the default session manager.
+  - Next tab: ctrl+a, n
+  - New tab: ctrl+a, c
+- `fish` is the default shell.
+  - immediate typeahead
+  - search with up and down arrows
+
+However, it is not POSIX-compatible.
+If you need to paste in shell script snippets, drop down to `sh` first.
+
+## Developer Utilities
+
+`~/.config/envman/PATH.env` is sourced to set the `PATH`.
+
+It includes the following:
+
+```text
+~/bin/
+~/.local/bin/
+```
+
+`~/bin` is recommended for your own scripts and programs.
+
+`~/.local/bin` and `~/.local/opt/<program>/bin` will be used
+for scripts and programs you install.
+
+### Helpful Commands & Aliases
+
+```text
+# install the latest versions of developer tools, direct from the release api
+# (bun, caddy, duckdns, flutter, go, gh, hugo, jq, lsd, node, ollama,
+# powershell, python, rg, rust, sclient, vim-essentials, zig, + many more)
+
+webi
+```
+
+```text
+# add aliases
+aliasman
+
+# like cat, but with syntax highlighting
+bat
+
+# show the external ip address
+myip
+
+# like grep, but respects .gitignore, .ignore, etc
+rg
+
+# creates, enables, and starts an openrc daemon for the given command
+# ex: serviceman add --name 'my-app' -- node ./server.js
+serviceman
+
+# show current public key
+ssh-pubkey
+
+# add file or url to ~/.ssh/authorized_keys
+ssh-authorize
+
+# allows user programs to listen on privileged ports via libcap
+setcap-netbind
+
+# to lint shell scripts
+shellcheck
+
+# to format shell scripts
+shfmt
+
+# vim-sensible, vim-ale, and other automatic plugins
+~/.vim/
+```
+
+### Aliases
+
+```text
+cat       # bat (cat with syntax highlighting)
+diffy     # diff -y --suppress-common-lines
+rnd       # random string
+rnd16     # random hex string
+rnd32     # random base32 (Crockford) string
+rnd58     # random base58 (cryptocurrency) string
+rnd62     # random base62 (GitHub token) string
+rnd64     # random (url-safe) base64 string
+rnd64rfc  # random (rfc) base64 string
+ts        # timestamp as YYYY-MM-DD_hh.mm.ss
+vi        # vim
+```
+
+## Installed Packages
+
+We've added a number of packages that are not included in the Alpine base.
+
+We document those here to prevent any surpises and to make it easier for you
+to take control and make it yours.
+
+### System Packages
+
+DO NOT remove unless you know exactly what you're doing - otherwise your
+instance may become unrecoverable.
+
+```text
+sudo       # to run any command as root
+openssh    # to be able to remote into your instance
+logrotate  # to prevent running out of storage from logs
+```
+
+### Convenience Packages
+
+```text
+curl fish git htop less screen vim wget xz unzip
+
+libcap   # for setcap-netbind
+```
+
+## SSH
+
+```text
+/etc/ssh/sshd_config
+~/.ssh/authorized_keys
+~/.ssh/config
+~/.ssh/config.d/bnna.d/example.sshconfig
+```
+
+### Keys generated on first boot
+
+```text
+~/.ssh/id_ed25519
+~/.ssh/id_ed25519.pub
+~/.ssh/id_ecdsa
+~/.ssh/id_ecdsa.pub
+```
+
+### Key-only login
+
+```text
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+```
+
+### Port Forwarding Enabled
+
+```text
+AllowTcpForwarding yes
+GatewayPorts yes
+```
+
+## Uninstall it all
+
+To uninstall the non-stock files and programs which are not necessary to use the instance:
+
+```sh
+rm -f ~/.profile ~/.bashrc ~/.npmrc
+rm -rf ~/.config/envman ~/.config/fish
+rm -rf ~/bin ~/.local/bin ~/.local/opt
+
+sudo --no-cache apk del curl fish git htop less screen vim wget xz unzip
+
+rm -f ~/README.md
+```
+
+This will keep:
+- `openssh` - needed to access the instance
+- `sudo` and `libcap` - needed if you keep access to a user account
+- `logrotate` - needed if your services have logs
+
+To remove the 'app' user and only run as `root`, see the SSH configuration above, and then remove the following:
+
+```sh
+sudo cp -RPp ~/.ssh /root/
+sudo chown -R root:root /root/
+rm /etc/sudoers.d/app
+deluser --remove-home app
+delgroup app
+```

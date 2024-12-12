@@ -1,0 +1,5 @@
+Host example-1 example-1.0000.c.bnna.net dev-1.example.com
+	# Internal IP: 10.0.0.101
+	Hostname example-1.0000.c.bnna.net
+	User app
+	ProxyCommand sclient --alpn ssh %h

@@ -1,0 +1,14 @@
+alias cat='bat --paging never --pager none --theme Dracula --style=plain'
+
+alias diffy='diff -y --suppress-common-lines'
+
+alias rnd='xxd -l24 -ps /dev/urandom | xxd -r -ps | base64 | tr -d = | tr + - | tr / _'
+alias rnd16='xxd -c 0 -l 40 -p /dev/urandom'
+alias rnd32='xxd -c 0 -l 256 -p /dev/urandom | xxd -r -ps | base64 | tr -d [:space:]/+_-= | tr -d abcdefghijklmnopqrstuvwxyzILOU | cut -c 1-80'
+alias rnd32='xxd -c 0 -l 256 -p /dev/urandom | xxd -r -ps | base64 | tr -d [:space:]/+_=- | tr -d abcdefghijklmnopqrstuvwxyzILOU | cut -c 1-80'
+alias rnd58='xxd -c 0 -l 256 -p /dev/urandom | xxd -r -ps | base64 | tr -d [:space:]/+_=- | tr -d 0IOl | cut -c 1-80'
+alias rnd62='xxd -c 0 -l 256 -p /dev/urandom | xxd -r -ps | base64 | tr -d [:space:]/+_=- | cut -c 1-80'
+alias rnd64='xxd -c 0 -l 256 -p /dev/urandom | xxd -r -ps | base64 | tr -d [:space:]= | tr + - | tr / _ | cut -c 1-80'
+alias rnd64rfc='xxd -c 0 -l 32 -p /dev/urandom | xxd -r -ps | base64'
+
+alias ts='date +%F_%H.%M.%S'
