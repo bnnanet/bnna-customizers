@@ -23,6 +23,9 @@ chmod 0600 ~/.ssh/authorized_keys
 if ! grep -q 'screen' ~/.profile 2> /dev/null; then
     echo "screen -xRS 'awesome' -s fish" >> ~/.profile
 fi
+if ! test -e ~/.screenrc; then
+    echo "startup_message off" > ~/.screenrc
+fi
 if ! test -e ~/.bashrc; then
     ln -s .profile ~/.bashrc
 fi
